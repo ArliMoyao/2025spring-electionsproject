@@ -9,50 +9,66 @@ from urllib.parse import urlparse
 
               
 #list of non US ccTLDs
-# nonUsTld = {
-#     "mx", "cl", "br", "ar", "es", "fr", "de", "uk", "ca", "it", "nl", "ru", "cn", "jp", "kr", "au", "in"
-# }
+# 
+ nonUsTld = {
+    "mx", "cl", "br", "ar", "es", "fr", "de", "uk", "ca", "it", "nl", "ru", "cn", "jp", "kr", "au", "in"
+}
 
-# def getTld(domain):
-#     parts = domain.split(".")
-#     if len(parts) > 1:
-#         return parts[-1].lower() #this will return the last part of the domain name
+def getTld(domain):
+         parts = domain.split(".")
+     if len(parts) > 1:
+        return parts[-1].lower() #this will return the last part of the domain name
     
-#     return "" #if the domain is invalid, return an empty string
+    return "" #if the domain is invalid, return an empty string
 
 
 #using requests using WHOIS API for faster lookups
 
-domains = ["cnn.com", "elpais.com", "bbc.co.uk","nytimes.com", "lemonade.fr"] #dummy code for testing 
+domains = [] 
 
-# externalDomains = []
+externalDomains = []
 
-# for inputFile in inputFiles:
-#     with open(inputFile, "r", newline="") as f: 
-#         reader = csv.reader(f)
-#         next(reader) #skip the header
+for inputFile in inputFiles:
+         with open(inputFile, "r", newline="") as f: 
+         reader = csv.DictReader(f)
+         next(reader) #skip the header
 
-#         for row in reader:
-#             domain = row[0] #the domain is in the first column
-#             tld = getTld(domain)
+         for row in reader:
+            getQuery = row["query"]          
+            getLink = row["url"]
+            getDomain = row["domain"]
 
-#             if tld in nonUsTld:
-#                 externalDomains.append(row)
+            tld = getTld(domain)
 
-# with open("externalDomains.csv", "w", newline="") as f:
-#     writer = csv.writer(f)
-#     writer.writerow(["Domain", "Url", "Url occurences", "Common?"])
-#     writer.writerows(externalDomains)
+            if tld in nonUsTld:
+               queryLocation = tld
+            else:
+                #call other function
+                ipLocation(getQuery)
+                queryLocation 
+              
+
+            if tld in nonUsTld:
+                externalDomains.append(row)
 
 
-for domain in domains: 
-    url= f"https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=at_8qdMuf0whxXYIP4HhAma3qxuO3isU&domainName={domain}&outputFormat=JSON"
-    response = requests.get(url)
-    data = response.json()
 
-    try: 
-        country = data.get("WhoisRecord").get("registrant").get("country", "Unknown")
-        print(f"Domain: {domain}, Country: {country}")
+with open("externalDomains.csv", "w", newline="") as f:
+     writer = csv.writer(f)
+     writer.writerow(["Query", "Domain", "Link ","Country"])
+     writer.writerows(externalDomains)
 
-    except Exception as e:
-        print(f"Error processing domain {domain}: {e}")
+
+def ipLocation(url):
+
+    for domain in domains: 
+        url= f"https://www.whoisxmlapi.com/whoisserver/WhoisService?apiKey=at_8qdMuf0whxXYIP4HhAma3qxuO3isU&domainName={domain}&outputFormat=JSON"
+        response = requests.get(url)
+        data = response.json()
+
+        try: 
+            country = data.get("WhoisRecord").get("registrant").get("country", "Unknown")
+            print(f"Domain: {domain}, Country: {country}")
+
+        except Exception as e:
+            print(f"Error processing domain {domain}: {e}")
