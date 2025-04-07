@@ -9,55 +9,16 @@ from urllib.parse import urlparse
 
               
 #list of non US ccTLDs
-# 
- nonUsTld = {
+#
+nonUsTld = {
     "mx", "cl", "br", "ar", "es", "fr", "de", "uk", "ca", "it", "nl", "ru", "cn", "jp", "kr", "au", "in"
 }
 
 def getTld(domain):
          parts = domain.split(".")
-     if len(parts) > 1:
-        return parts[-1].lower() #this will return the last part of the domain name
-    
-    return "" #if the domain is invalid, return an empty string
-
-
-#using requests using WHOIS API for faster lookups
-
-domains = [] 
-
-externalDomains = []
-
-for inputFile in inputFiles:
-         with open(inputFile, "r", newline="") as f: 
-         reader = csv.DictReader(f)
-         next(reader) #skip the header
-
-         for row in reader:
-            getQuery = row["query"]          
-            getLink = row["url"]
-            getDomain = row["domain"]
-
-            tld = getTld(domain)
-
-            if tld in nonUsTld:
-               queryLocation = tld
-            else:
-                #call other function
-                ipLocation(getQuery)
-                queryLocation 
-              
-
-            if tld in nonUsTld:
-                externalDomains.append(row)
-
-
-
-with open("externalDomains.csv", "w", newline="") as f:
-     writer = csv.writer(f)
-     writer.writerow(["Query", "Domain", "Link ","Country"])
-     writer.writerows(externalDomains)
-
+         if len(parts) > 1:
+            return parts[-1].lower() #this will return the last part of the domain name
+         return "" #if the domain is invalid, return an empty string
 
 def ipLocation(url):
 
@@ -68,7 +29,48 @@ def ipLocation(url):
 
         try: 
             country = data.get("WhoisRecord").get("registrant").get("country", "Unknown")
-            print(f"Domain: {domain}, Country: {country}")
+            return(f"Domain: {domain}, Country: {country}")
 
         except Exception as e:
-            print(f"Error processing domain {domain}: {e}")
+            return(f"Error processing domain {domain}: {e}")
+#using requests using WHOIS API for faster lookups
+domains = [] 
+
+externalDomains = []
+
+for inputFile in inputFiles:
+         with open(inputFile, "r", newline="") as f: 
+            reader = csv.DictReader(f)
+         #next(reader) #skip the header
+         
+
+         for row in reader:
+            domains.append(row)
+            #getQuery = row["query"]          
+            #getLink = row["url"]
+            #getDomain = row["domain"]
+
+            tld = getTld(row['domain'])
+            if tld in nonUsTld:
+               queryLocation = tld
+               domains.append(tld)
+               
+            else:
+                #call other function
+                ipl = ipLocation(row['url'])
+                domains.append(ipl)
+
+         externalDomains.append(domains)
+         domains = []
+
+             
+
+
+
+with open("externalDomains.csv", "w", newline="") as f:
+     writer = csv.writer(f)
+     writer.writerow(["Query", "Domain", "Link ","Country"])
+     writer.writerows(externalDomains)
+
+
+
